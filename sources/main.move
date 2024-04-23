@@ -1,6 +1,6 @@
 #[allow(unused_use)]
 
-module dacade_deepbook::book {
+module event_planner::planner {
     use std::vector;
     use sui::transfer;
     use sui::sui::SUI;
@@ -10,6 +10,7 @@ module dacade_deepbook::book {
     use sui::balance::{Self, Balance};
     use sui::tx_context::{Self, TxContext};
     use sui::transfer::{transfer, share_object};
+    use std::option::{Option, none, some};
 
     // struct
     struct Event has key, store{
@@ -120,51 +121,39 @@ module dacade_deepbook::book {
         return vector::borrow_mut(events, event_index)
     }
 
-    public fun update_participant_balance(planner: &mut EventPlanner, event_index: u64, participant_index: u64, new_balance: Balance<SUI>, ctx: &mut TxContext) {
+    public fun update_participant_balance(planner: &mut EventPlanner, event_index: u64, participant_index: u64, new_balance: Balance<SUI>) {
         let events = get_events(planner);
         let event = vector::borrow_mut(events, event_index);
         let participant = vector::borrow_mut(&mut event.participants, participant_index);
-        participant.balance = new_balance;
+		balance::join(
+            &mut participant.balance,
+            new_balance
+        );
     }
 
-    public fun filter_events(planner: &mut EventPlanner, filter: fn(&Event) -> bool): vector<Event> {
-        let events = get_events(planner);
-        let mut filtered_events: vector<Event> = vector::empty();
-        for event in events.iter() {
-            if filter(event) {
-                vector::push_back(&mut filtered_events, event.clone());
-            }
-        }
-        return filtered_events;
-    }
+    // public fun search_events(planner: &mut EventPlanner, search_term: String): vector<Event> {
+    //     let events = get_events(planner);
+    //     let search_results: vector<Event> = vector::empty();
+    //     let num_events = vector::length(&events);
+	// 	let mut i = 0;
+    //     while (i < num_events) {
+	// 		let event = vector::borrow(&events, i);
+	// 		if (event.name.contains(&search_term) || event.location.contains(&search_term)) {
+    //             vector::push_back(&mut search_results, event);
+    //         };
+	// 		i = i + 1
+	// 	};
+    //     return search_results;
+    // }
 
-    public fun search_events(planner: &mut EventPlanner, search_term: String): vector<Event> {
-        let events = get_events(planner);
-        let search_results: vector<Event> = vector::empty();
-        for (event in events.iter()) {
-            if event.name.contains(&search_term) || event.location.contains(&search_term) {
-            vector::push_back(&mut search_results, event.clone());
-            }
-        }
-        return search_results;
-    }
-
-    public fun update_event(planner: &mut EventPlanner, event_index: u64, name: Option<String>, date: Option<String>, location: Option<String>, budget: Option<u64>, ctx: &mut TxContext) {
+    public fun update_event(planner: &mut EventPlanner, event_index: u64, name: String, date: String, location: String, budget: u64) {
         let events = get_events(planner);
         let event = vector::borrow_mut(events, event_index);
 
-        if (Some(new_name) = name) {
-            event.name = new_name;
-        };
-        if (Some(new_date) = date) {
-            event.date = new_date;
-        };
-        if (Some(new_location) = location) {
-            event.location = new_location;
-        };
-        if (Some(new_budget) = budget) {
-            event.budget = new_budget;
-        }
+        event.name = name;
+        event.date = date;
+        event.location = location;
+        event.budget = budget;
     }
 
 }
