@@ -11,6 +11,7 @@ module dacade_deepbook::book {
     use sui::tx_context::{Self, TxContext};
     use sui::transfer::{transfer, share_object};
 
+    // struct
     struct Event has key, store{
         id: UID,
         name: String,
@@ -40,6 +41,7 @@ module dacade_deepbook::book {
         id: UID,
         events: vector<Event>,
     }
+
 
     fun init(ctx: &mut TxContext) {
         let planner = EventPlanner {
