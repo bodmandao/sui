@@ -2,14 +2,14 @@ module dacade_deepbook::book {
     use std::vector;
     use sui::sui::SUI;
     use sui::coin::{Self, Coin};
-    use sui::object::{Self, UID};
+    use sui::object::{Self, UID, ID};
     use std::string::{Self, String};
     use sui::balance::{Self, Balance};
-    use sui::tx_context::{Self, TxContext};
-    use sui::transfer::{transfer, share_object};
+    use sui::tx_context::{Self, TxContext, sender};
+    use sui::transfer::{Self};
 
     // struct
-    struct Event has key, store{
+    struct Event has key, store {
         id: UID,
         name: String,
         date: String,
@@ -18,6 +18,12 @@ module dacade_deepbook::book {
         tasks: vector<Task>,
         participants: vector<Participant>,
         finished: bool,
+    }
+
+    struct EventCap has key {
+        id: UID,
+        event_id: ID,
+        owner: address
     }
 
     struct Task has key, store{
@@ -34,30 +40,11 @@ module dacade_deepbook::book {
         balance: Balance<SUI>,
     }
 
-    struct EventPlanner has key, store {
-        id: UID,
-        events: vector<Event>,
-    }
-
-
-    fun init(ctx: &mut TxContext) {
-        let planner = EventPlanner {
-            id: object::new(ctx),
-            events: vector::empty<Event>(),
-        };
-        share_object(planner);
-    }
-
-    fun get_events(planner :&mut EventPlanner) : &mut vector<Event> {
-        // let planner: EventPlanner = get_planner(); 
-        return &mut planner.events
-    }
-
-    public fun add_event(planner : &mut EventPlanner, name: String, date: String, location: String, budget: u64, ctx: &mut TxContext) {
-        let events = get_events(planner);
-        let new_event_id = object::new(ctx);
-        let new_event = Event {
-            id: new_event_id,
+    public fun new_event(name: String, date: String, location: String, budget: u64, ctx: &mut TxContext) {
+        let id_ = object::new(ctx);
+        let inner_ = object::uid_to_inner(&id_);
+        let event = Event {
+            id: id_,
             name,
             date,
             location,
@@ -66,52 +53,58 @@ module dacade_deepbook::book {
             participants: vector::empty<Participant>(),
             finished: false,
         };
-        vector::push_back(events, new_event);
-    }
-
-    public fun add_task(planner : &mut EventPlanner,event_index: u64, name: String, assigned_to: UID, ctx: &mut TxContext) {
-        let events = get_events(planner);
-        let event = vector::borrow_mut(events, event_index);
-        let new_task_id = object::new(ctx);
-        let new_task = Task {
-            id: new_task_id,
-            name,
-            assigned_to,
-            completed: false,
+        let cap = EventCap {
+            id: object::new(ctx),
+            event_id: inner_,
+            owner: sender(ctx)
         };
-        vector::push_back(&mut event.tasks, new_task);
+        transfer::transfer(cap, sender(ctx));
+        transfer::share_object(event);
     }
 
-    public fun add_participant(planner : &mut EventPlanner,event_index: u64, name: String, ctx: &mut TxContext) {
-        let events = get_events(planner);
-        let event = vector::borrow_mut(events, event_index);
-        let new_participant_id = object::new(ctx);
-        let new_participant = Participant {
-            id: new_participant_id,
-            name,
-            addr: sui::tx_context::sender(ctx),
-            balance: balance::zero(),
-        };
-        vector::push_back(&mut event.participants, new_participant);
-    }
+    // public fun add_task(planner : &mut EventPlanner,event_index: u64, name: String, assigned_to: UID, ctx: &mut TxContext) {
+    //     let events = get_events(planner);
+    //     let event = vector::borrow_mut(events, event_index);
+    //     let new_task_id = object::new(ctx);
+    //     let new_task = Task {
+    //         id: new_task_id,
+    //         name,
+    //         assigned_to,
+    //         completed: false,
+    //     };
+    //     vector::push_back(&mut event.tasks, new_task);
+    // }
 
-    public fun complete_task(planner : &mut EventPlanner,event_index: u64, task_index: u64) {
-        let events = get_events(planner);
-        let event = vector::borrow_mut(events, event_index);
-        let task = vector::borrow_mut(&mut event.tasks, task_index);
-        task.completed = true;
-    }
+    // public fun add_participant(planner : &mut EventPlanner,event_index: u64, name: String, ctx: &mut TxContext) {
+    //     let events = get_events(planner);
+    //     let event = vector::borrow_mut(events, event_index);
+    //     let new_participant_id = object::new(ctx);
+    //     let new_participant = Participant {
+    //         id: new_participant_id,
+    //         name,
+    //         addr: sui::tx_context::sender(ctx),
+    //         balance: balance::zero(),
+    //     };
+    //     vector::push_back(&mut event.participants, new_participant);
+    // }
 
-    public fun finish_event(planner : &mut EventPlanner,event_index: u64) {
-        let events = get_events(planner);
-        let event = vector::borrow_mut(events, event_index);
-        event.finished = true;
-    }
+    // public fun complete_task(planner : &mut EventPlanner,event_index: u64, task_index: u64) {
+    //     let events = get_events(planner);
+    //     let event = vector::borrow_mut(events, event_index);
+    //     let task = vector::borrow_mut(&mut event.tasks, task_index);
+    //     task.completed = true;
+    // }
 
-    public fun get_event(planner: &mut EventPlanner, event_index: u64): &mut Event {
-        let events = get_events(planner);
-        return vector::borrow_mut(events, event_index)
-    }
+    // public fun finish_event(planner : &mut EventPlanner,event_index: u64) {
+    //     let events = get_events(planner);
+    //     let event = vector::borrow_mut(events, event_index);
+    //     event.finished = true;
+    // }
+
+    // public fun get_event(planner: &mut EventPlanner, event_index: u64): &mut Event {
+    //     let events = get_events(planner);
+    //     return vector::borrow_mut(events, event_index)
+    // }
 
     // public fun update_participant_balance(planner: &mut EventPlanner, event_index: u64, participant_index: u64, new_balance: Balance<SUI>, ctx: &mut TxContext) {
     //     let events = get_events(planner);
