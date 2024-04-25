@@ -19,7 +19,7 @@ module dacade_deepbook::book {
         location: String,
         budget: u64,
         tasks: Table<address, Task>,
-        participants: vector<Participant>,
+        participants: Table<address, Participant>,
         finished: bool,
     }
 
@@ -53,7 +53,7 @@ module dacade_deepbook::book {
             location,
             budget,
             tasks: table::new(ctx),
-            participants: vector::empty<Participant>(),
+            participants: table::new(ctx),
             finished: false,
         };
         let cap = EventCap {
@@ -78,18 +78,16 @@ module dacade_deepbook::book {
         table::add(&mut self.tasks, assigned_to, task);
     }
 
-    // public fun add_participant(planner : &mut EventPlanner,event_index: u64, name: String, ctx: &mut TxContext) {
-    //     let events = get_events(planner);
-    //     let event = vector::borrow_mut(events, event_index);
-    //     let new_participant_id = object::new(ctx);
-    //     let new_participant = Participant {
-    //         id: new_participant_id,
-    //         name,
-    //         addr: sui::tx_context::sender(ctx),
-    //         balance: balance::zero(),
-    //     };
-    //     vector::push_back(&mut event.participants, new_participant);
-    // }
+    public fun add_participant(self: &mut Event, name: String, ctx: &mut TxContext) {
+        let id_ = object::new(ctx);
+        let participant = Participant {
+            id: id_,
+            name,
+            addr: sender(ctx),
+            balance: balance::zero(),
+        };
+        table::add(&mut self.participants, sender(ctx), participant);
+    }
 
     // public fun complete_task(planner : &mut EventPlanner,event_index: u64, task_index: u64) {
     //     let events = get_events(planner);
