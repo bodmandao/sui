@@ -103,56 +103,10 @@ module dacade_deepbook::book {
         self.finished = true;
     }
 
-    // public fun get_event(planner: &mut EventPlanner, event_index: u64): &mut Event {
-    //     let events = get_events(planner);
-    //     return vector::borrow_mut(events, event_index)
-    // }
-
-    // public fun update_participant_balance(planner: &mut EventPlanner, event_index: u64, participant_index: u64, new_balance: Balance<SUI>, ctx: &mut TxContext) {
-    //     let events = get_events(planner);
-    //     let event = vector::borrow_mut(events, event_index);
-    //     let participant = vector::borrow_mut(&mut event.participants, participant_index);
-    //     participant.balance = new_balance;
-    // }
-
-    // public fun filter_events(planner: &mut EventPlanner, filter: fn(&Event) -> bool): vector<Event> {
-    //     let events = get_events(planner);
-    //     let mut filtered_events: vector<Event> = vector::empty();
-    //     for event in events.iter() {
-    //         if filter(event) {
-    //             vector::push_back(&mut filtered_events, event.clone());
-    //         }
-    //     }
-    //     return filtered_events;
-    // }
-
-    // public fun search_events(planner: &mut EventPlanner, search_term: String): vector<Event> {
-    //     let events = get_events(planner);
-    //     let search_results: vector<Event> = vector::empty();
-    //     for (event in events.iter()) {
-    //         if event.name.contains(&search_term) || event.location.contains(&search_term) {
-    //         vector::push_back(&mut search_results, event.clone());
-    //         }
-    //     }
-    //     return search_results;
-    // }
-
-    // public fun update_event(planner: &mut EventPlanner, event_index: u64, name: Option<String>, date: Option<String>, location: Option<String>, budget: Option<u64>, ctx: &mut TxContext) {
-    //     let events = get_events(planner);
-    //     let event = vector::borrow_mut(events, event_index);
-
-    //     if (Some(new_name) = name) {
-    //         event.name = new_name;
-    //     };
-    //     if (Some(new_date) = date) {
-    //         event.date = new_date;
-    //     };
-    //     if (Some(new_location) = location) {
-    //         event.location = new_location;
-    //     };
-    //     if (Some(new_budget) = budget) {
-    //         event.budget = new_budget;
-    //     }
-    // }
-
+    public fun update_participant_balance(cap: &EventCap, self: &mut Event, participant: address, coin: Coin<SUI>) {
+        assert!(cap.event_id == object::id(self), ERROR_INVALID_CAP);
+        let participiant = table::borrow_mut(&mut self.participants, participant);
+        let balance_ = coin::into_balance(coin);
+        balance::join(&mut participiant.balance, balance_);
+    }
 }
