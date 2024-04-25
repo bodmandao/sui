@@ -113,6 +113,12 @@ module dacade_deepbook::book {
         balance::join(&mut participiant.balance, balance_);
     }
 
+    public fun withdraw(self: &mut Event, amount: u64, ctx: &mut TxContext) : Coin<SUI> {
+        let participant = table::borrow_mut(&mut self.participants, sender(ctx));
+        let coin_ = coin::take(&mut participant.balance, amount, ctx);
+        coin_
+    }
+
    // === Public-View Functions ===
 
     // Event
