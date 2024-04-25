@@ -8,8 +8,11 @@ module dacade_deepbook::book {
     use sui::tx_context::{Self, TxContext, sender};
     use sui::transfer::{Self};
     use sui::table::{Self, Table};
+
     // ERRORS
     const ERROR_INVALID_CAP: u64 = 0;
+    const ERROR_EVENT_FINISHED: u64 = 1;
+
 
     // struct
     struct Event has key, store {
@@ -90,15 +93,15 @@ module dacade_deepbook::book {
     }
 
     public fun complete_task(self: &mut Event, ctx: &mut TxContext) {
+        assert!(!self.finished, ERROR_EVENT_FINISHED);
         let task = table::borrow_mut(&mut self.tasks, sender(ctx));
         task.completed = true;
     }
 
-    // public fun finish_event(planner : &mut EventPlanner,event_index: u64) {
-    //     let events = get_events(planner);
-    //     let event = vector::borrow_mut(events, event_index);
-    //     event.finished = true;
-    // }
+    public fun finish_event(cap: &EventCap, self: &mut Event) {
+        assert!(cap.event_id == object::id(self), ERROR_INVALID_CAP);
+        self.finished = true;
+    }
 
     // public fun get_event(planner: &mut EventPlanner, event_index: u64): &mut Event {
     //     let events = get_events(planner);
