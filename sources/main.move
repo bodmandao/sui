@@ -26,7 +26,7 @@ module dacade_deepbook::book {
         participants: Table<address, Participant>,
         finished: bool,
     }
-
+    // struct that represent Event Capability
     struct EventCap has key {
         id: UID,
         event_id: ID,
