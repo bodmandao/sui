@@ -1,5 +1,4 @@
 module dacade_deepbook::book {
-    use std::vector;
     use sui::sui::SUI;
     use sui::coin::{Self, Coin};
     use sui::object::{Self, UID, ID};
@@ -8,6 +7,8 @@ module dacade_deepbook::book {
     use sui::tx_context::{Self, TxContext, sender};
     use sui::transfer::{Self};
     use sui::table::{Self, Table};
+
+    use std::vector;
 
      // === Errors ===
     const ERROR_INVALID_CAP: u64 = 0;
@@ -153,8 +154,4 @@ module dacade_deepbook::book {
         let balance_ = balance::value(&self.balance);
         balance_
     }
-
-   
-
-
 }
