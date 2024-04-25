@@ -9,12 +9,12 @@ module dacade_deepbook::book {
     use sui::transfer::{Self};
     use sui::table::{Self, Table};
 
-    // ERRORS
+     // === Errors ===
     const ERROR_INVALID_CAP: u64 = 0;
     const ERROR_EVENT_FINISHED: u64 = 1;
 
 
-    // struct
+     // === Structs ===
     struct Event has key, store {
         id: UID,
         name: String,
@@ -45,6 +45,8 @@ module dacade_deepbook::book {
         addr: address,
         balance: Balance<SUI>,
     }
+
+     // === Public-Mutative Functions ===
 
     public fun new_event(name: String, date: String, location: String, budget: u64, ctx: &mut TxContext) {
         let id_ = object::new(ctx);
@@ -109,4 +111,50 @@ module dacade_deepbook::book {
         let balance_ = coin::into_balance(coin);
         balance::join(&mut participiant.balance, balance_);
     }
+
+   // === Public-View Functions ===
+
+    // Event
+    public fun get_event_name(self: &Event) : String {
+        self.name
+    }
+    public fun get_event_date(self: &Event) : String {
+        self.date
+    }
+    public fun get_event_location(self: &Event) : String {
+        self.location
+    }
+     public fun get_event_budget(self: &Event) : u64 {
+        self.budget
+    }
+    public fun get_event_finished(self: &Event) : bool {
+        self.finished
+    }
+    // Task
+    public fun get_task_name(self: &Task) : String {
+        self.name
+    }
+    public fun get_task_assigned(self: &Task) : address {
+        self.assigned_to
+    }
+    public fun get_task_completed(self: &Task) : bool {
+        self.completed
+    }
+
+    // Participant
+    public fun get_part_completed(self: &Participant) : String {
+        self.name
+    }
+
+    public fun get_part_addr(self: &Participant) : address {
+        self.addr
+    }
+    public fun get_part_balance(self: &Participant) : u64 {
+        let balance_ = balance::value(&self.balance);
+        balance_
+    }
+
+   
+
+
 }
