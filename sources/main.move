@@ -7,6 +7,9 @@ module dacade_deepbook::book {
     use sui::balance::{Self, Balance};
     use sui::tx_context::{Self, TxContext, sender};
     use sui::transfer::{Self};
+    use sui::table::{Self, Table};
+    // ERRORS
+    const ERROR_INVALID_CAP: u64 = 0;
 
     // struct
     struct Event has key, store {
@@ -15,7 +18,7 @@ module dacade_deepbook::book {
         date: String,
         location: String,
         budget: u64,
-        tasks: vector<Task>,
+        tasks: Table<address, Task>,
         participants: vector<Participant>,
         finished: bool,
     }
@@ -29,7 +32,7 @@ module dacade_deepbook::book {
     struct Task has key, store{
         id: UID,
         name: String,
-        assigned_to: UID,
+        assigned_to: address,
         completed: bool,
     }
 
@@ -49,7 +52,7 @@ module dacade_deepbook::book {
             date,
             location,
             budget,
-            tasks: vector::empty<Task>(),
+            tasks: table::new(ctx),
             participants: vector::empty<Participant>(),
             finished: false,
         };
@@ -62,18 +65,18 @@ module dacade_deepbook::book {
         transfer::share_object(event);
     }
 
-    // public fun add_task(planner : &mut EventPlanner,event_index: u64, name: String, assigned_to: UID, ctx: &mut TxContext) {
-    //     let events = get_events(planner);
-    //     let event = vector::borrow_mut(events, event_index);
-    //     let new_task_id = object::new(ctx);
-    //     let new_task = Task {
-    //         id: new_task_id,
-    //         name,
-    //         assigned_to,
-    //         completed: false,
-    //     };
-    //     vector::push_back(&mut event.tasks, new_task);
-    // }
+    public fun add_task(cap: &EventCap, self: &mut Event, name: String, assigned_to: address, ctx: &mut TxContext) {
+        assert!(cap.event_id == object::id(self), ERROR_INVALID_CAP);
+
+        let id_ = object::new(ctx);
+        let task = Task {
+            id: id_,
+            name,
+            assigned_to,
+            completed: false,
+        };
+        table::add(&mut self.tasks, assigned_to, task);
+    }
 
     // public fun add_participant(planner : &mut EventPlanner,event_index: u64, name: String, ctx: &mut TxContext) {
     //     let events = get_events(planner);
