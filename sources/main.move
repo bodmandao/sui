@@ -1,5 +1,3 @@
-#[allow(unused_use)]
-
 module dacade_deepbook::book {
     use std::vector;
     use sui::transfer;
