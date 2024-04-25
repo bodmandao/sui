@@ -89,12 +89,10 @@ module dacade_deepbook::book {
         table::add(&mut self.participants, sender(ctx), participant);
     }
 
-    // public fun complete_task(planner : &mut EventPlanner,event_index: u64, task_index: u64) {
-    //     let events = get_events(planner);
-    //     let event = vector::borrow_mut(events, event_index);
-    //     let task = vector::borrow_mut(&mut event.tasks, task_index);
-    //     task.completed = true;
-    // }
+    public fun complete_task(self: &mut Event, ctx: &mut TxContext) {
+        let task = table::borrow_mut(&mut self.tasks, sender(ctx));
+        task.completed = true;
+    }
 
     // public fun finish_event(planner : &mut EventPlanner,event_index: u64) {
     //     let events = get_events(planner);
